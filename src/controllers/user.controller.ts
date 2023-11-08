@@ -2,18 +2,19 @@ import { Request, Response } from "express";
 import { userModel } from "../models/user";
 
 export const getAllUsers = (req: Request, res: Response) => {
+    userModel.find().then((data) => res.json(data)).catch((error) => res.json({message:'wronggg'}))
 
-    res.status(200).send('Get all users')
 }
 
-export const getAllUsersRegistered = (req: Request, res: Response) => {
-    res.status(200).send('Registered Users')
+export const getUser = (req: Request, res: Response) => {
+    const { params: { userId } } = req;
+
+    userModel.findById(userId).then((user) => res.json(user))
 }
 
 export const createUser = (req: Request, res: Response) => {
-
     const user = new userModel(req.body)
-    user.save().then((data) => res.json(data)).catch((error) => res.json({message:error}))
+    user.save().then((data) => res.json(data)).catch((error) => res.json({message:'wronggg'}))
     // res.status(200).send('User created succesfully')
 }
 
@@ -32,14 +33,22 @@ export const deleteUser = (req: Request, res: Response) => {
             }
             res.status(200).json({ message: 'User deleted successfully', deletedUser });
         })
-        .catch((error) => {
-            res.status(500).json({ message: 'An error occurred', error });
-        });
-}
+};
 
 export const updateUser = (req: Request, res: Response) => {
-    const id = req.params.id
+    const { params: { userId }, body } = req;
 
-    res.send(`User with ID ${id} update succesfully`)
-}
+    userModel.findByIdAndUpdate(userId, body, { new: true })
+        .then((user) => {
+            if (!user) {
+                return res.status(404).json({ message: 'User not found' });
+            }
+            res.json(user);
+        })
+        .catch((error) => {
+            console.error(error);
+            res.status(500).json({ message: 'Internal Server Error' });
+        });
+};
+
 
