@@ -1,54 +1,79 @@
 import { Request, Response } from "express";
 import { userModel } from "../models/user";
 
-export const getAllUsers = (req: Request, res: Response) => {
-    userModel.find().then((data) => res.json(data)).catch((error) => res.json({message:'wronggg'}))
+export const getAllUsers = async(req: Request, res: Response) => {
 
-}
+    try {
+        const users = await userModel.find()
 
-export const getUser = (req: Request, res: Response) => {
-    const { params: { userId } } = req;
-
-    userModel.findById(userId).then((user) => res.json(user))
-}
-
-export const createUser = (req: Request, res: Response) => {
-    const user = new userModel(req.body)
-    user.save().then((data) => res.json(data)).catch((error) => res.json({message:'wronggg'}))
-    // res.status(200).send('User created succesfully')
-}
-
-export const deleteUser = (req: Request, res: Response) => {
-    const { params: { userId } } = req;
-
-    if (!userId) {
-        return res.status(400).send('User ID is required');
+        res.status(200).json(users)
+    } catch (error) {
+        res.status(500).json(error)
     }
 
-    userModel
-        .findByIdAndDelete(userId)
-        .then((deletedUser) => {
-            if (!deletedUser) {
-                return res.status(404).send('User not found');
-            }
-            res.status(200).json({ message: 'User deleted successfully', deletedUser });
-        })
+}
+
+export const getUser = async (req: Request, res: Response) => {
+    const { params: { userId } } = req;
+
+    try {
+        const user = await userModel.findById({_id: userId})
+
+        res.status(200).json(user)
+    } catch (error) {
+        res.status(500).json(error)
+    }
+}
+
+export const createUser = async (req: Request, res: Response) => {
+    const { name, email, password } = req.body
+
+    try {
+        if(!name || !email || !password) throw new Error('Missing fields')
+
+        const newUser = await userModel.create({name,email,password})
+
+        res.status(201).json(newUser)
+
+    } catch (error) {
+        res.status(500).json(error)
+    }
+}
+
+export const deleteUser = async (req: Request, res: Response) => {
+    const { params: { userId } } = req;
+
+    try {
+        if (!userId) {
+            return res.status(400).send('User ID is required');
+    }
+
+    const deletedUser = await userModel.findByIdAndDelete(userId);
+
+    if (!deletedUser) {
+        return res.status(404).send('User not found');
+    }
+
+    res.status(200).json({ message: 'User deleted successfully', deletedUser });
+
+    } catch (error) {
+
+    res.status(500).send(error);
+}
 };
 
-export const updateUser = (req: Request, res: Response) => {
-    const { params: { userId }, body } = req;
+export const updateUser = async (req: Request, res: Response) => {
+    const { userId } = req.params;
+    const { name, email} = req.body;
 
-    userModel.findByIdAndUpdate(userId, body, { new: true })
-        .then((user) => {
-            if (!user) {
-                return res.status(404).json({ message: 'User not found' });
-            }
-            res.json(user);
-        })
-        .catch((error) => {
-            console.error(error);
-            res.status(500).json({ message: 'Internal Server Error' });
-        });
+    try {
+        const user = await userModel.findByIdAndUpdate(
+            {_id: userId}, 
+            {$set: {name: name, email: email} }, 
+            {new: true}
+        )
+        res.status(201).json(user)
+    } catch (error) {
+        res.status(500).json(error)
+    }
 };
-
-

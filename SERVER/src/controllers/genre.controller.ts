@@ -1,54 +1,78 @@
 import { Request, Response } from "express";
 import { genreModel } from "../models/genre";
 
-export const getAllGenres = (req: Request, res: Response) => {
-    genreModel.find().then((data) => res.json(data)).catch((error) => res.json({message:'wronggg'}))
+export const getAllGenres = async (req: Request, res: Response) => {
 
+    try {
+        const genres = await genreModel.find()
+
+        res.status(200).json(genres)
+    } catch (error) {
+        res.status(500).json(error)
+    }
 }
 
-export const getGenre = (req: Request, res: Response) => {
+export const getGenre = async (req: Request, res: Response) => {
     const { params: { genreId } } = req;
 
-    genreModel.findById(genreId).then((user) => res.json(user))
-}
+    try {
+        const genre = await genreModel.findById({_id: genreId})
 
-export const createGenre = (req: Request, res: Response) => {
-    const genre = new genreModel(req.body)
-    genre.save().then((data) => res.json(data)).catch((error) => res.json({message:'wronggg'}))
-    // res.status(200).send('User created succesfully')
-}
-
-export const deleteGenre = (req: Request, res: Response) => {
-    const { params: { genreId } } = req;
-
-    if (!genreId) {
-        return res.status(400).send('Genre ID is required');
+        res.status(200).json(genre)
+    } catch (error) {
+        res.status(500).json(error)
     }
 
-    genreModel
-        .findByIdAndDelete(genreId)
-        .then((deletedGenre) => {
-            if (!deletedGenre) {
-                return res.status(404).send('Genre not found');
-            }
-            res.status(200).json({ message: 'Genre deleted successfully', deletedGenre });
-        })
-};
+}
 
-export const updateGenre = (req: Request, res: Response) => {
-    const { params: { genreId }, body } = req;
+export const createGenre = async (req: Request, res: Response) => {
+    const { name } = req.body
 
-    genreModel.findByIdAndUpdate(genreId, body, { new: true })
-        .then((genre) => {
-            if (!genre) {
-                return res.status(404).json({ message: 'Genre not found' });
-            }
-            res.json(genre);
-        })
-        .catch((error) => {
-            console.error(error);
-            res.status(500).json({ message: 'Internal Server Error' });
-        });
-};
+    try {
+        if(!name) throw new Error ('Missing field')
+        
+        const newGenre = await genreModel.create({name})
 
+        res.status(201).json(newGenre)
 
+    } catch (error) {
+        res.status(500).json(error)
+    }
+}
+
+export const deleteGenre = async (req: Request, res: Response) => {
+    const { params: { genreId } } = req;
+
+    try {
+        if (!genreId) {
+            return res.status(400).send('Genre ID is required');
+        }
+        
+        const deletedGenre = await genreModel.findByIdAndDelete(genreId)
+
+        if (!deletedGenre){
+            return res.status(404).send('Genre not found')
+        }
+
+        res.status(200).json({ message: 'Genre deleted successfully', deletedGenre})
+
+    } catch (error) {
+        res.status(500).json(error)
+    }    
+}
+
+export const updateGenre = async (req: Request, res: Response) => {
+    const { genreId } = req.params;
+    const { name } = req.body;
+
+    try {
+        const genre = await genreModel.findByIdAndUpdate(
+            {_id: genreId},
+            {$set: { name: name}},
+            {new: true}
+        )
+        res.status(201).json(genre)
+    } catch (error) {
+        res.status(500).json(error)       
+    }
+}

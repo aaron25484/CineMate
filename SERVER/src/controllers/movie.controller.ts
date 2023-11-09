@@ -1,50 +1,81 @@
 import { Request, Response } from "express"
 import { movieModel } from "../models/movie"
 
-export const getAllMovies = (req: Request, res: Response) => {
-    movieModel.find().then((data) => res.json(data)).catch((error) => res.json({message:'Could not get movies'}))
-}
+export const getAllMovies = async(req: Request, res: Response) => {
 
-export const getMovie = (req: Request, res: Response) => {
-    const { params: { movieId }} = req
+    try {
+        const movies = await movieModel.find()
 
-    movieModel.findById(movieId).then((movie) => res.json(movie))
-}
-
-export const createMovie = (req: Request, res: Response) => {
-    const movie = new movieModel(req.body)
-    movie.save().then((data) => res.json(data)).catch((error) => res.json({message:'wronggg'}))
-}
-
-export const deleteMovie = (req: Request, res: Response) => {
-    const { params: { movieId } } = req;
-
-    if (!movieId) {
-        return res.status(400).send('Movie ID is required')
+        res.status(200).json(movies)
+    } catch (error) {
+        res.status(500).json(error)
     }
 
-    movieModel
-    .findByIdAndDelete(movieId)
-    .then((deletedMovie) => {
-        if(!deletedMovie) {
-            return res.status(404).send('Movie not found')
-        }
-        res.status(200).json({ message: 'Movie deleted successfully', deletedMovie})
-    })
 }
 
-export const updateMovie = (req: Request, res: Response) => {
-    const { params: { movieId }, body } = req;
+export const getMovie = async(req: Request, res: Response) => {
+    const { params: { movieId }} = req
 
-    movieModel.findByIdAndUpdate(movieId, body, { new: true})
-        .then((movie)=> {
-            if (!movie) {
-                return res.status(404).json({ message: 'Movie not found' });
-            }
-            res.json(movie);
-        })
-        .catch((error) => {
-            console.error(error);
-            res.status(500).json({ message: 'Internal Server Error' });
-        })
+    try {
+        const movie = await movieModel.findById({_id: movieId})
+
+        res.status(200).json(movie)
+    } catch (error) {
+        res.status(500).json(error)
+    }
+}
+
+export const createMovie = async (req: Request, res: Response) => {
+    const { name, poster_img, score, genre } = req.body
+
+    try {
+        if(!name || !poster_img || !score || !genre) throw new Error('Missing fields')
+
+        const newMovie = await movieModel.create({name, poster_img, score, genre})
+
+        res.status(201).json(newMovie)
+
+    } catch (error) {
+        res.status(500).json(error)
+    }
+}
+
+export const deleteMovie = async (req: Request, res: Response) => {
+    const { params: { movieId } } = req;
+
+    try {
+        if (!movieId) {
+            return res.status(400).send('Movie ID is required');
+    }
+
+    const deletedMovie = await movieModel.findByIdAndDelete(movieId);
+
+    if (!deletedMovie) {
+        return res.status(404).send('Movie not found');
+    }
+
+    res.status(200).json({ message: 'Movie deleted successfully', deletedMovie });
+
+    } catch (error) {
+
+    res.status(500).send(error);
+}
+};
+
+
+export const updateMovie = async (req: Request, res: Response) => {
+    const { movieId } = req.params;
+    const {name,poster_img,score,genre} = req.body
+
+    try {
+        const movie = await movieModel.findByIdAndUpdate(
+            {_id: movieId},
+            {$set: {name: name, poster_img: poster_img, score: score, genre: genre}},
+            {new: true}
+        )
+        res.status(201).json(movie)
+
+    } catch (error){
+        res.status(500).json(error)
+    }
 }
