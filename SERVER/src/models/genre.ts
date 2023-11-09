@@ -1,8 +1,14 @@
-import { Schema, model } from "mongoose";
+import { Document, Schema, model } from "mongoose"; 
 
-const genreSchema = new Schema ({
-    _id: String,
-    name: String
+interface IGenreDocument extends Document {
+    name: string
+}
+
+const genreSchema = new Schema<IGenreDocument> ({
+    name: {
+        type: String,
+        required: [true, 'Name is required']
+    }
 })
 
-export const genreModel = model('genre', genreSchema)
+export const genreModel = model<IGenreDocument>('genre', genreSchema)
