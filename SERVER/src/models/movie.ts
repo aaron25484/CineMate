@@ -29,4 +29,4 @@ const movieSchema = new Schema<IMovieDocument> ({
 
 }, {timestamps: true, versionKey: false})
 
-export const movieModel = model<IMovieDocument>('movie', movieSchema)
+export const movieModel = model<IMovieDocument>('movies', movieSchema)

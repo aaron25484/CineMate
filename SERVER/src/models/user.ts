@@ -4,6 +4,7 @@ interface IUserDocument extends Document {
     name: string,
     email:string,
     password: string,
+    movies: string[],
     createdAt?: Date,
     updatedAt?: Date
 }
@@ -11,7 +12,7 @@ interface IUserDocument extends Document {
 const userSchema = new Schema<IUserDocument> ({
     name: {
         type: String,
-        required: [true, 'Name is require']
+        required: [true, 'Name is required']
     },
     email: {
         type: String,
@@ -22,6 +23,8 @@ const userSchema = new Schema<IUserDocument> ({
         type: String,
         required: [true, 'Password is required']
     },
+    movies: [{ type: Schema.Types.ObjectId, ref: 'movies'}]
+    
 }, {timestamps: true, versionKey: false})
 
 export const userModel = model<IUserDocument>('user', userSchema)

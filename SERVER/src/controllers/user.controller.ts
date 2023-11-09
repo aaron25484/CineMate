@@ -17,7 +17,7 @@ export const getUser = async (req: Request, res: Response) => {
     const { params: { userId } } = req;
 
     try {
-        const user = await userModel.findById({_id: userId})
+        const user = await userModel.findById({_id: userId}).populate('movies')
 
         res.status(200).json(user)
     } catch (error) {

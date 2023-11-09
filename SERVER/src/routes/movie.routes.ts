@@ -4,7 +4,7 @@ import { getAllMovies, createMovie, deleteMovie, getMovie, updateMovie } from ".
 const movieRoutes = Router()
 
 movieRoutes.get('/', getAllMovies)
-movieRoutes.post('/', createMovie)
+movieRoutes.post('/:userId', createMovie)
 movieRoutes.delete('/:movieId', deleteMovie)
 movieRoutes.get('/:movieId', getMovie)
 movieRoutes.patch('/:movieId', updateMovie)
