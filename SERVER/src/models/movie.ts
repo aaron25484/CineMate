@@ -4,7 +4,7 @@ interface IMovieDocument extends Document {
     name:string,
     poster_img:string,
     score: number,
-    genre: string,
+    genreId: string,
     createdAt?: Date,
     updatedAt?: Date
 }
@@ -22,7 +22,7 @@ const movieSchema = new Schema<IMovieDocument> ({
         type: Number,
         required: [true, 'A score is required']
     },
-    genre: {
+    genreId: {
         type: String,
         required: [true, 'A genre is required']
     }
