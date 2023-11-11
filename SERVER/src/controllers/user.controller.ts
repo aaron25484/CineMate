@@ -77,3 +77,53 @@ export const updateUser = async (req: Request, res: Response) => {
         res.status(500).json(error)
     }
 };
+
+export const getUserWatchlist = async (req: Request, res: Response) => {
+    const {userId} = req.params
+
+    try {
+        if (!userId) {
+            throw new Error('User ID is required')
+        }
+
+        const user = await userModel.findById(userId)
+
+        if (!user) {
+            return res.status(404).send('User not found')
+        }
+
+        const watchlist = user.movies
+
+        res.status(200).json(watchlist)
+    } catch (error) {
+        res.status(500).json(error)
+        
+    }
+}
+
+export const deleteFromWatchlist = async (req: Request, res: Response) => {
+    const { movieId } = req.params;
+
+    try {
+        if (!movieId) {
+            return res.status(400).send('Movie ID is required');
+    }
+
+    const user = await userModel.findOne({movies: movieId})
+
+    if (!user) {
+        return res.status(404).send('User not found');
+    }
+
+    await userModel.findByIdAndUpdate(
+        { _id: user!._id },
+        { $pull: { movies: movieId}},
+    )
+
+    res.status(200).json({ message: 'Movie deleted from user successfully' });
+
+    } catch (error) {
+
+    res.status(500).send(error);
+}
+}
