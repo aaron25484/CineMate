@@ -1,23 +1,30 @@
 import { Request, Response } from "express";
 import { userModel } from "../models/user";
+import prisma from "../db/client";
 
 export const getAllUsers = async(req: Request, res: Response) => {
-
     try {
-        const users = await userModel.find()
+        const users = await prisma.user.findMany()
 
-        res.status(200).json(users)
+        res.status(201).json(users)
     } catch (error) {
         res.status(500).json(error)
     }
-
 }
 
 export const getUser = async (req: Request, res: Response) => {
     const { params: { userId } } = req;
 
     try {
-        const user = await userModel.findById({_id: userId}).populate('movies')
+        const user = await prisma.user.findUnique({
+            where: {id: userId},
+            include: {movies:true}
+        }
+        )
+
+        if (!user) {
+            return res.status(404).send('User not found');
+        }
 
         res.status(200).json(user)
     } catch (error) {
@@ -31,12 +38,23 @@ export const createUser = async (req: Request, res: Response) => {
     try {
         if(!name || !email || !password) throw new Error('Missing fields')
 
-        const newUser = await userModel.create({name,email,password})
-
+        const newUser = await prisma.user.create({
+            data: {
+                name,
+                email,
+                password,
+                movies: {
+                create: [],
+            
+            },
+        }});
         res.status(201).json(newUser)
 
+        console.log(newUser)
+
     } catch (error) {
-        res.status(500).json(error)
+        console.error('Error creating user:', error);
+        res.status(500).json({ message: 'Internal server error' })
     }
 }
 
@@ -48,7 +66,9 @@ export const deleteUser = async (req: Request, res: Response) => {
             return res.status(400).send('User ID is required');
     }
 
-    const deletedUser = await userModel.findByIdAndDelete(userId);
+    const deletedUser = await prisma.user.delete({
+        where: {id: userId},
+    });
 
     if (!deletedUser) {
         return res.status(404).send('User not found');
@@ -64,15 +84,15 @@ export const deleteUser = async (req: Request, res: Response) => {
 
 export const updateUser = async (req: Request, res: Response) => {
     const { userId } = req.params;
-    const { name, email} = req.body;
+    const { name, email, password} = req.body;
 
     try {
-        const user = await userModel.findByIdAndUpdate(
-            {_id: userId}, 
-            {$set: {name: name, email: email} }, 
-            {new: true}
-        )
-        res.status(201).json(user)
+        const updatedUser = await prisma.user.update({
+            where: {id: userId},
+            data:{name,email,password},
+            select:{name:true,email:true,password:true,updatedAt:true}
+        })
+        res.status(201).json(updatedUser)
     } catch (error) {
         res.status(500).json(error)
     }
@@ -86,13 +106,16 @@ export const getUserWatchlist = async (req: Request, res: Response) => {
             throw new Error('User ID is required')
         }
 
-        const user = await userModel.findById(userId)
+        const user = await prisma.user.findUnique({
+            where: {id: userId},
+            include: {movies:true}
+        })
 
         if (!user) {
             return res.status(404).send('User not found')
         }
 
-        const watchlist = user.movies
+        const watchlist = user.watchlist
 
         res.status(200).json(watchlist)
     } catch (error) {
@@ -102,23 +125,28 @@ export const getUserWatchlist = async (req: Request, res: Response) => {
 }
 
 export const deleteFromWatchlist = async (req: Request, res: Response) => {
-    const { movieId } = req.params;
+    const { movieId, userId } = req.params;
 
     try {
-        if (!movieId) {
-            return res.status(400).send('Movie ID is required');
-    }
 
-    const user = await userModel.findOne({movies: movieId})
+        const user = await prisma. user.findUnique({
+            where: {id: userId},
+        })
+        const deleteMovieFromWatchlist = user?.watchlist.filter(id => id !==movieId)
+
 
     if (!user) {
         return res.status(404).send('User not found');
     }
 
-    await userModel.findByIdAndUpdate(
-        { _id: user!._id },
-        { $pull: { movies: movieId}},
-    )
+    await prisma.user.update({
+        where: {
+            id: userId,
+        },
+        data: {
+            watchlist: deleteMovieFromWatchlist
+        },
+    })
 
     res.status(200).json({ message: 'Movie deleted from user successfully' });
 

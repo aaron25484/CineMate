@@ -5,7 +5,7 @@ const movieRoutes = Router()
 
 movieRoutes.get('/', getAllMovies)
 movieRoutes.post('/', createMovie)
-movieRoutes.patch('/:userId', addToWatchlist)
+movieRoutes.post('/:userId/watchlist/:movieId', addToWatchlist)
 movieRoutes.delete('/:movieId', deleteMovie)
 movieRoutes.get('/:movieId', getMovie)
 movieRoutes.patch('/:movieId', updateMovie)
