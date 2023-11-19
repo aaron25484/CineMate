@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { userModel } from "../models/user";
-import prisma from "../db/client";
-
+import { prismaClient } from "../db/client";
+import { convertToType } from "../utils/utils";
+import {auth} from 'express-oauth2-jwt-bearer'
 export const getAllUsers = async(req: Request, res: Response) => {
     try {
-        const users = await prisma.user.findMany()
+        const users = await prismaClient.user.findMany()
 
         res.status(201).json(users)
     } catch (error) {
@@ -16,8 +16,8 @@ export const getUser = async (req: Request, res: Response) => {
     const { params: { userId } } = req;
 
     try {
-        const user = await prisma.user.findUnique({
-            where: {id: userId},
+        const user = await prismaClient.user.findUnique({
+            where: {id: convertToType(userId)},
             include: {movies:true}
         }
         )
@@ -33,30 +33,41 @@ export const getUser = async (req: Request, res: Response) => {
 }
 
 export const createUser = async (req: Request, res: Response) => {
-    const { name, email, password } = req.body
-
     try {
-        if(!name || !email || !password) throw new Error('Missing fields')
+        if (!req.auth || !req.auth.payload) {
+            throw new Error('Invalid or missing JWT payload');
+          }
+        const { sub, email, name } = req.auth?.payload;
 
-        const newUser = await prisma.user.create({
-            data: {
+        const existingUser = await prismaClient.user.findUnique({
+            where: { auth0UserId: sub },
+          });
+          if (existingUser) {
+            // User already exists, you can perform additional actions if needed
+            console.log('User already exists:', existingUser);
+            res.status(200).json(existingUser);
+          } else {
+            // User doesn't exist, create a new user record in the database
+            const newUser = await prismaClient.user.create({
+              data: {
+                auth0UserId: sub,
                 name,
                 email,
-                password,
+                password: '', // Note: You might want to handle this differently based on your authentication flow
                 movies: {
-                create: [],
-            
-            },
-        }});
-        res.status(201).json(newUser)
-
-        console.log(newUser)
-
-    } catch (error) {
-        console.error('Error creating user:', error);
-        res.status(500).json({ message: 'Internal server error' })
-    }
-}
+                  create: [],
+                },
+              },
+            });
+      
+            console.log('New user created:', newUser);
+            res.status(201).json(newUser);
+          }
+        } catch (error) {
+          console.error('Error creating user:', error);
+          res.status(500).json({ message: 'Internal server error' });
+        }
+      };
 
 export const deleteUser = async (req: Request, res: Response) => {
     const { params: { userId } } = req;
@@ -66,8 +77,8 @@ export const deleteUser = async (req: Request, res: Response) => {
             return res.status(400).send('User ID is required');
     }
 
-    const deletedUser = await prisma.user.delete({
-        where: {id: userId},
+    const deletedUser = await prismaClient.user.delete({
+        where: {id: convertToType(userId)},
     });
 
     if (!deletedUser) {
@@ -87,8 +98,8 @@ export const updateUser = async (req: Request, res: Response) => {
     const { name, email, password} = req.body;
 
     try {
-        const updatedUser = await prisma.user.update({
-            where: {id: userId},
+        const updatedUser = await prismaClient.user.update({
+            where: {id: convertToType(userId)},
             data:{name,email,password},
             select:{name:true,email:true,password:true,updatedAt:true}
         })
@@ -106,8 +117,8 @@ export const getUserWatchlist = async (req: Request, res: Response) => {
             throw new Error('User ID is required')
         }
 
-        const user = await prisma.user.findUnique({
-            where: {id: userId},
+        const user = await prismaClient.user.findUnique({
+            where: {id: convertToType(userId)},
             include: {movies:true}
         })
 
@@ -129,19 +140,19 @@ export const deleteFromWatchlist = async (req: Request, res: Response) => {
 
     try {
 
-        const user = await prisma. user.findUnique({
-            where: {id: userId},
+        const user = await prismaClient.user.findUnique({
+            where: {id: convertToType(userId)},
         })
-        const deleteMovieFromWatchlist = user?.watchlist.filter(id => id !==movieId)
+        const deleteMovieFromWatchlist = user?.watchlist.filter((id: string | number) => id !==movieId)
 
 
     if (!user) {
         return res.status(404).send('User not found');
     }
 
-    await prisma.user.update({
+    await prismaClient.user.update({
         where: {
-            id: userId,
+            id: convertToType(userId),
         },
         data: {
             watchlist: deleteMovieFromWatchlist

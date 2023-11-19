@@ -1,11 +1,11 @@
 import { Request, Response } from "express";
-import { genreModel } from "../models/genre";
-import prisma from "../db/client";
+import { prismaClient } from "../db/client";
+import { convertToType } from "../utils/utils";
 
 export const getAllGenres = async (req: Request, res: Response) => {
 
     try {
-        const genres = await prisma.genre.findMany()
+        const genres = await prismaClient.genre.findMany()
 
         res.status(200).json(genres)
     } catch (error) {
@@ -17,8 +17,8 @@ export const getGenre = async (req: Request, res: Response) => {
     const { params: { genreId } } = req;
 
     try {
-        const genre = await prisma.genre.findUnique({
-            where: {id:genreId},
+        const genre = await prismaClient.genre.findUnique({
+            where: {id: convertToType(genreId)},
             include:{
                 movies: {
                     include:{
@@ -42,7 +42,7 @@ export const createGenre = async (req: Request, res: Response) => {
     try {
         if(!name) throw new Error ('Missing field')
         
-        const newGenre = await prisma.genre.create({data: {name}})
+        const newGenre = await prismaClient.genre.create({data: {name}})
 
         res.status(201).json(newGenre)
 
@@ -59,8 +59,8 @@ export const deleteGenre = async (req: Request, res: Response) => {
             return res.status(400).send('Genre ID is required');
         }
         
-        const deletedGenre = await prisma.genre.delete({
-            where: {id:genreId}})
+        const deletedGenre = await prismaClient.genre.delete({
+            where: {id: convertToType(genreId)}})
 
         if (!deletedGenre){
             return res.status(404).send('Genre not found')
@@ -78,8 +78,8 @@ export const updateGenre = async (req: Request, res: Response) => {
     const { name } = req.body;
 
     try {
-        const genre = await prisma.genre.update({
-            where: {id:genreId},
+        const genre = await prismaClient.genre.update({
+            where: {id: convertToType(genreId)},
             data:{name:name}
         })
         res.status(201).json(genre)
