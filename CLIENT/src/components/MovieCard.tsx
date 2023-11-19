@@ -4,6 +4,7 @@ interface Movie {
   _id: string;
   name: string;
   score: number;
+  poster: string;
 }
 
 interface MovieCardProps {
@@ -11,16 +12,17 @@ interface MovieCardProps {
 }
 
 const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
-  const {name, score} = movie
+  const {name, score, poster} = movie
   return (
     <div className="bg-white p-4 rounded-md shadow-md mb-4">
       <h2 className="text-xl font-semibold">{name}</h2>
+      <img src={poster} alt="" />
       <p className="text-gray-600">{score}</p>
     </div>
   );
 };
 
-const HomePages: React.FC =  () => {
+const MovieCards: React.FC =  () => {
   const [movies, setMovies] = useState<Movie[]>([]);
 
   useEffect(() => {
@@ -44,4 +46,4 @@ const HomePages: React.FC =  () => {
   );
 };
 
-export default HomePages
+export default MovieCards
