@@ -34,13 +34,11 @@ export const getUser = async (req: Request, res: Response) => {
 
 export const createUser = async (req: Request, res: Response) => {
     try {
-        if (!req.auth || !req.auth.payload) {
-            throw new Error('Invalid or missing JWT payload');
-          }
-        const { sub, email, name } = req.auth?.payload;
+       
+        const { name, email, password } = req.body;
 
         const existingUser = await prismaClient.user.findUnique({
-            where: { auth0UserId: sub },
+            where: { email },
           });
           if (existingUser) {
             // User already exists, you can perform additional actions if needed
@@ -50,7 +48,6 @@ export const createUser = async (req: Request, res: Response) => {
             // User doesn't exist, create a new user record in the database
             const newUser = await prismaClient.user.create({
               data: {
-                auth0UserId: sub,
                 name,
                 email,
                 password: '', // Note: You might want to handle this differently based on your authentication flow
