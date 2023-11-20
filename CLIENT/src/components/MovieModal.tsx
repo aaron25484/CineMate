@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { useMovieContext } from '../context/movieContext';
 import { useAuth0 } from '@auth0/auth0-react';
@@ -9,7 +9,12 @@ interface MovieModalProps {
   closeModal: () => void;
 }
 
-const genres = ['Action', 'Drama', 'Comedy'];
+interface Genre {
+  id: string,
+  name: string
+}
+
+// const genres = ['Action', 'Drama', 'Comedy'];
 
 interface FormData {
   name: string;
@@ -23,6 +28,31 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
   const {updateMovies} = useMovieContext()
   const {getAccessTokenSilently} = useAuth0()
+  const [genres, setGenres] = useState<Genre[]>([]);
+
+  useEffect(() => {
+    const fetchGenres = async () => {
+      try {
+        const accessToken = await getAccessTokenSilently();
+        const response = await fetch('http://localhost:4000/genres', {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        if (response.ok) {
+          const genresData = await response.json();
+          setGenres(genresData);
+        } else {
+          console.error(`Failed to fetch genres: ${response.statusText}`);
+        }
+      } catch (error) {
+        console.error('Error fetching genres:', error);
+      }
+    };
+
+    fetchGenres();
+  }, [getAccessTokenSilently]);
 
   const onSubmit = async (data: FormData) => {
       setLoading(true)
@@ -156,8 +186,8 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose }) => {
                         Select a genre
                       </option>
                       {genres.map((g) => (
-                        <option key={g} value={g}>
-                          {g}
+                        <option key={g.id} value={g.id}>
+                          {g.name}
                         </option>
                       ))}
                     </select>

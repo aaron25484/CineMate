@@ -1,9 +1,12 @@
-// GenreBar.tsx
 
 import React from "react";
 
+export interface Genre {
+  id: string;
+  name: string;
+}
 interface GenreBarProps {
-  genres: Genre[];
+  genres:  { id: string; name: string }[];
   onGenreFilter: (genreId: string | null) => void;
 }
 
