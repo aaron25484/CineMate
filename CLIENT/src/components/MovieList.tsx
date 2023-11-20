@@ -15,10 +15,10 @@ const MovieList: React.FC = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [moviesResponse, genresResponse, watchlistResponse] = await Promise.all([
+        const [moviesResponse, genresResponse] = await Promise.all([
           fetch("http://localhost:4000/movies"),
           fetch("http://localhost:4000/genres"),
-          fetch(`http://localhost:4000/users/${user?.email}/watchlist`), // Add this line
+
         ]);
 
         if (moviesResponse.ok) {
@@ -35,19 +35,16 @@ const MovieList: React.FC = () => {
           console.error(`Failed to fetch genres: ${genresResponse.statusText}`);
         }
 
-        if (watchlistResponse.ok) {
-          const watchlistData = await watchlistResponse.json();
-          updateWatchlist(watchlistData); // Assuming there's a function to update watchlist in the movie context
-        } else {
-          console.error(`Failed to fetch watchlist: ${watchlistResponse.statusText}`);
-        }
+      
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-
+    
+    
     fetchData();
-  }, [updateMovies]);
+    
+  }, [updateMovies, user]);
 
   const handleGenreFilter = (genreId: string | null) => {
     if (genreId) {
@@ -73,10 +70,9 @@ const MovieList: React.FC = () => {
 
   return (
     <div className="container mx-auto mt-4">
-      <h1 className="text-3xl font-semibold mb-4">Movie List</h1>
       <GenreBar genres={genres} onGenreFilter={handleGenreFilter} />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6">
         {filteredMovies.map((movie) => (
           <MovieCard
             key={movie.id}
@@ -91,3 +87,4 @@ const MovieList: React.FC = () => {
 };
 
 export default MovieList;
+

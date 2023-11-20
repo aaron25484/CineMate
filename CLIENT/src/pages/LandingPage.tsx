@@ -1,10 +1,9 @@
-import React from 'react'
-import MovieCards from '../components/MovieCard'
+import MovieList from '../components/MovieList'
 
 const LandingPage = () => {
   return (
       <>
-      <MovieCards />
+      <MovieList />
       </>
     )
 }

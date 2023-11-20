@@ -36,13 +36,12 @@ export const MovieProvider: React.FC<MovieContextProps> = ({ children }) => {
   const { user } = useAuth0();
 
   useEffect(() => {
-    // Fetch movies and watchlist data from the server
-    // Update the state accordingly
+    
     const fetchData = async () => {
       try {
         const [moviesResponse, watchlistResponse] = await Promise.all([
           fetch("http://localhost:4000/movies"),
-          fetch("http://localhost:4000/user/watchlist"), // Adjust the endpoint based on your API
+          user && fetch(`http://localhost:4000/users/${user?.email}/watchlist`), // Adjust the endpoint based on your API
         ]);
 
         if (moviesResponse.ok) {
@@ -52,11 +51,11 @@ export const MovieProvider: React.FC<MovieContextProps> = ({ children }) => {
           console.error(`Failed to fetch movies: ${moviesResponse.statusText}`);
         }
 
-        if (watchlistResponse.ok) {
+        if (user && watchlistResponse?.ok) {
           const watchlistData = await watchlistResponse.json();
           setWatchlist(watchlistData);
         } else {
-          console.error(`Failed to fetch watchlist: ${watchlistResponse.statusText}`);
+          console.error(`Failed to fetch watchlist: ${watchlistResponse?.statusText}`);
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -64,13 +63,13 @@ export const MovieProvider: React.FC<MovieContextProps> = ({ children }) => {
     };
 
     fetchData();
-  }, []);
+  }, [user]);
 
 
   const updateMovies = (newMovies: Movie[]) => {
-    // Combine the existing movies with the new ones
     setMovies((prevMovies) => [...prevMovies, ...newMovies]);
   };
+
   const addToWatchlist = async (movieId: string) => {
     try {
       if (user) {
@@ -88,7 +87,7 @@ export const MovieProvider: React.FC<MovieContextProps> = ({ children }) => {
 
         if (response.ok) {
           console.log(`Movie with ID ${movieId} added to watchlist`);
-          setWatchlist((prevWatchlist) => [...prevWatchlist, { id: movieId }]);
+          setWatchlist((prevWatchlist) => [...prevWatchlist, { id: movieId, name: "", score: 0, poster: "", genreId: ""  }]);
         } else {
           console.error(
             `Failed to add movie to watchlist: ${response.statusText}`
@@ -135,11 +134,14 @@ export const MovieProvider: React.FC<MovieContextProps> = ({ children }) => {
     }
   };
 
+
+
   const value = {
     movies,
     watchlist,
     updateMovies,
     addToWatchlist,
+    
     removeFromWatchlist,
   };
 

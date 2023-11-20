@@ -77,7 +77,7 @@ const ProfilePage: React.FC = () => {
           if (prevWatchlist.some((movie) => movie.id === movieId)) {
             return prevWatchlist.filter((movie) => movie.id !== movieId);
           } else {
-            return [...prevWatchlist, { id: movieId }];
+            return [...prevWatchlist, { id: movieId, name: "", score: 0, poster: "", genreId: ""  }];
           }
         });
 
