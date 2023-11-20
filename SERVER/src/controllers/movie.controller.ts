@@ -40,7 +40,7 @@ export const createMovie = async (req: Request, res: Response) => {
         name: movieData.name,
         score: Number(movieData.score),
         genre: {
-          connect: { name: movieData.genre },
+          connect: { id: movieData.genre },
         },
         poster: movieData.poster,
       },

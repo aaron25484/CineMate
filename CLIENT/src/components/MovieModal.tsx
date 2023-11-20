@@ -145,7 +145,7 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose }) => {
                   </label>
                   <input
                     type="text"
-                    className="border rounded w-full py-2 px-3"
+                    className="border text-black rounded w-full py-2 px-3"
                     {...register("name")}
                   />
                 </div>
@@ -154,7 +154,7 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose }) => {
                     Score:
                   </label>
                   <select
-                    className="border rounded w-full py-2 px-3"
+                    className="border text-black rounded w-full py-2 px-3"
                     {...register("score")}
                   >
                     {Array.from({ length: 11 }, (_, i) => (
@@ -169,7 +169,7 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose }) => {
                     Genre:
                   </label>
                   <select
-                    className="border rounded w-full py-2 px-3"
+                    className="border text-black rounded w-full py-2 px-3"
                     {...register("genre")}
                     onChange={handleGenreChange}
                   >

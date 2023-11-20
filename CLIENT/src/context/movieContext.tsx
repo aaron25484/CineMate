@@ -40,7 +40,7 @@ export const MovieProvider: React.FC<MovieContextProps> = ({ children }) => {
       try {
         const [moviesResponse, watchlistResponse] = await Promise.all([
           fetch("http://localhost:4000/movies"),
-          user && fetch(`http://localhost:4000/users/${user?.email}/watchlist`), // Adjust the endpoint based on your API
+          user && fetch(`http://localhost:4000/users/${user?.email}/watchlist`)
         ]);
 
         if (moviesResponse.ok) {
