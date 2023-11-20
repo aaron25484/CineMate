@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { set, useForm } from 'react-hook-form';
-
+import { useForm } from 'react-hook-form';
+import { useMovieContext } from '../context/movieContext';
+import { useAuth0 } from '@auth0/auth0-react';
 
 interface MovieModalProps {
   isOpen: boolean;
@@ -20,6 +21,8 @@ interface FormData {
 const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose }) => {
   const { register, handleSubmit, setValue } = useForm<FormData>();
   const [loading, setLoading] = useState(false);
+  const {updateMovies} = useMovieContext()
+  const {getAccessTokenSilently} = useAuth0()
 
   const onSubmit = async (data: FormData) => {
       setLoading(true)
@@ -31,6 +34,10 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose }) => {
       formData.append("upload_preset", "posterPreset" )
   
       try {
+
+        const accessToken = await getAccessTokenSilently()
+        console.log('accessToken:', accessToken)
+        
       const uploadResponse = await fetch('https://api.cloudinary.com/v1_1/dy6oz4gvn/image/upload',
           {
             method: 'POST',
@@ -59,6 +66,7 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose }) => {
         method: 'POST',
         headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
         },
         body: JSON.stringify(movieData),
       });
@@ -68,6 +76,8 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose }) => {
         throw new Error('Failed to submit movie');
       }
       console.log('Movie submitted successfully', movieData);
+      const updatedMovies = await fetch(`${url}/movies`).then((res) => res.json());
+      updateMovies(updatedMovies);
       setLoading(false);
       onClose();
     } catch (error) {
