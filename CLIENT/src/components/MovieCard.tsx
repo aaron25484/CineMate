@@ -1,49 +1,65 @@
-import React, { useState, useEffect } from 'react';
+// MovieCard.tsx
 
-interface Movie {
-  _id: string;
+import React, { useState } from "react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { useMovieContext } from "../context/movieContext";
+
+export interface Movie {
+  id: string;
   name: string;
   score: number;
   poster: string;
+  genreId: string;
 }
 
 interface MovieCardProps {
   movie: Movie;
+  onToggleWatchlist: (movieId: string) => void;
+  isInWatchlist: boolean;
 }
 
-const MovieCard: React.FC<MovieCardProps> = ({ movie }) => {
-  const {name, score, poster} = movie
-  return (
-    <div className="bg-white p-4 rounded-md shadow-md mb-4">
-      <h2 className="text-xl font-semibold">{name}</h2>
-      <img src={poster} alt="" />
-      <p className="text-gray-600">{score}</p>
-    </div>
-  );
-};
+const MovieCard: React.FC<MovieCardProps> = ({ movie, onToggleWatchlist, isInWatchlist }) => {
+  const { name, score, poster, id } = movie;
+  const [isHovered, setIsHovered] = useState(false);
+  const { isAuthenticated } = useAuth0();
 
-const MovieCards: React.FC =  () => {
-  const [movies, setMovies] = useState<Movie[]>([]);
+  
 
-  useEffect(() => {
-    fetch('http://localhost:4000/movies')
-      .then(response => response.json())
-      .then(data => setMovies(data))
-      .catch(error => console.error('Error fetching data:', error));
-  }, []);
+  const handleToggleWatchlist = () => {
+    if (isAuthenticated) {
+      onToggleWatchlist(id);
+    }
+  };
 
   return (
-    <div className="container mx-auto mt-8">
-      <h1 className="text-3xl font-semibold mb-4">Movie List</h1>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {movies.map(movie => (
-          <MovieCard key={movie._id} movie={movie} />
-          
-        ))}
-        
+    <div
+      className="bg-opacity-80 bg-yellow-800 p-4 rounded-md shadow-md mb-4 transition-transform transform hover:scale-105"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <img
+        src={poster}
+        alt="movie poster"
+        className="w-full h-64 object-contain rounded-md mb-4"
+      />
+      <div>
+        <h2 className="text-xl font-semibold mb-2 text-yellow-400">{name}</h2>
+        <p className="text-gray-600">Rating: {score}</p>
+
+        {/* Add to Wishlist button */}
+        {isHovered && isAuthenticated && (
+          <button
+            onClick={handleToggleWatchlist}
+            className={`${
+              isInWatchlist ? "bg-red-500" : "bg-blue-500"
+            } hover:bg-blue-600 text-white px-4 py-2 rounded-md mt-2 transition duration-300`}
+          >
+            {isInWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
+          </button>
+        )}
       </div>
     </div>
   );
 };
 
-export default MovieCards
+export default MovieCard;
