@@ -34,9 +34,7 @@ export const getMovie = async(req: Request, res: Response) => {
 
 export const createMovie = async (req: Request, res: Response) => {
     
-
     try {
-
         const movieData = req.body;
 
     const newMovie = await prismaClient.movie.create({
@@ -151,34 +149,3 @@ export const updateMovie = async (req: Request, res: Response) => {
     }
 }
 
-export const addToWatchlist = async (req: Request, res: Response) => {
-    const {userId} = req.params
-    const {movieId} = req.body
-
-    try {
-
-        const user = await prismaClient.user.findUnique({
-            where: {id: convertToType(userId)},
-        })
-        user?.watchlist.push(convertToType(movieId))
-        
-        if (!userId || !movieId) {
-            throw new Error ('User ID and Movie ID are required')
-        }
-
-        await prismaClient.user.update({
-            where: {
-                id: convertToType (userId),
-            },
-            data: {
-                watchlist: user?.watchlist
-            },
-        })
-
-
-        res.status(200).json ({ message: 'Movie added to watchlist'})
-    } catch (error) {
-        res.status(500).json(error)
-    }
-    
-}
