@@ -1,4 +1,3 @@
-
 import React from "react";
 
 export interface Genre {
@@ -6,15 +5,15 @@ export interface Genre {
   name: string;
 }
 interface GenreBarProps {
-  genres:  { id: string; name: string }[];
+  genres: { id: string; name: string }[];
   onGenreFilter: (genreId: string | null) => void;
 }
 
 const GenreBar: React.FC<GenreBarProps> = ({ genres, onGenreFilter }) => {
   return (
-    <div className="flex justify-center space-x-4 my-4">
+    <div className="glass-genre-bar flex justify-center space-x-4">
       <button
-        className="text-white"
+        className="glass-genre-button text-white text-lg"
         onClick={() => onGenreFilter(null)}
       >
         All
@@ -22,9 +21,10 @@ const GenreBar: React.FC<GenreBarProps> = ({ genres, onGenreFilter }) => {
       {genres.map((genre) => (
         <button
           key={genre.id}
-          className="text-white"
-          onClick={() => {console.log("Clicked genre button with id:", genre.id);
-          onGenreFilter(String(genre.id));}}
+          className="glass-genre-button text-white text-lg "
+          onClick={() => {
+            onGenreFilter(String(genre.id));
+          }}
         >
           {genre.name}
         </button>

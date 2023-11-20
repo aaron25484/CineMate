@@ -1,5 +1,3 @@
-// MovieList.tsx
-
 import React, { useState, useEffect } from "react";
 import { useMovieContext } from "../context/movieContext";
 import GenreBar from "./Genrebar";
@@ -7,10 +5,16 @@ import MovieCard from "./MovieCard";
 import { useAuth0 } from "@auth0/auth0-react";
 
 const MovieList: React.FC = () => {
-  const { movies: allMovies, updateMovies, watchlist, addToWatchlist, removeFromWatchlist } = useMovieContext();
+  const {
+    movies: allMovies,
+    updateMovies,
+    watchlist,
+    addToWatchlist,
+    removeFromWatchlist,
+  } = useMovieContext();
   const [filteredMovies, setFilteredMovies] = useState(allMovies);
   const [genres, setGenres] = useState<string[]>([]);
-  const {user} = useAuth0()
+  const { user } = useAuth0();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -18,7 +22,6 @@ const MovieList: React.FC = () => {
         const [moviesResponse, genresResponse] = await Promise.all([
           fetch("http://localhost:4000/movies"),
           fetch("http://localhost:4000/genres"),
-
         ]);
 
         if (moviesResponse.ok) {
@@ -34,21 +37,19 @@ const MovieList: React.FC = () => {
         } else {
           console.error(`Failed to fetch genres: ${genresResponse.statusText}`);
         }
-
-      
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-    
-    
+
     fetchData();
-    
   }, [updateMovies, user]);
 
   const handleGenreFilter = (genreId: string | null) => {
     if (genreId) {
-      const filteredMovies = allMovies.filter((movie) => movie.genreId === genreId);
+      const filteredMovies = allMovies.filter(
+        (movie) => movie.genreId === genreId
+      );
       setFilteredMovies(filteredMovies);
     } else {
       setFilteredMovies(allMovies);
@@ -56,7 +57,6 @@ const MovieList: React.FC = () => {
   };
 
   const handleToggleWatchlist = async (movieId: string) => {
-    // Toggle the movie in the user's watchlist
     if (watchlist.some((watchlistMovie) => watchlistMovie.id === movieId)) {
       removeFromWatchlist(movieId);
     } else {
@@ -87,4 +87,3 @@ const MovieList: React.FC = () => {
 };
 
 export default MovieList;
-

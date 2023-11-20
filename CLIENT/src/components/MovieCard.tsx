@@ -1,5 +1,3 @@
-// MovieCard.tsx
-
 import React, { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 export interface Movie {
@@ -16,24 +14,28 @@ interface MovieCardProps {
   isInWatchlist: boolean;
 }
 
-const MovieCard: React.FC<MovieCardProps> = ({ movie, onToggleWatchlist, isInWatchlist }) => {
+const MovieCard: React.FC<MovieCardProps> = ({
+  movie,
+  onToggleWatchlist,
+  isInWatchlist,
+}) => {
   const { name, score, poster, id, genreId } = movie;
   const [isHovered, setIsHovered] = useState(false);
   const { isAuthenticated } = useAuth0();
   const [genreName, setGenreName] = useState<string>("Unknown Genre");
 
-
   useEffect(() => {
     const fetchGenreName = async () => {
       try {
-        // Fetch the genre details from the backend
         const response = await fetch(`http://localhost:4000/genres/${genreId}`);
 
         if (response.ok) {
           const genre = await response.json();
           setGenreName(genre.name);
         } else {
-          console.error(`Failed to fetch genre details: ${response.statusText}`);
+          console.error(
+            `Failed to fetch genre details: ${response.statusText}`
+          );
         }
       } catch (error) {
         console.error("Error fetching genre details:", error);
@@ -43,7 +45,6 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onToggleWatchlist, isInWat
     fetchGenreName();
   }, [genreId]);
 
-
   const handleToggleWatchlist = () => {
     if (isAuthenticated) {
       onToggleWatchlist(id);
@@ -52,7 +53,7 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onToggleWatchlist, isInWat
 
   return (
     <div
-      className="bg-opacity-80 bg-yellow-800 p-3 rounded-md shadow-md mb-3 transition-transform transform hover:scale-105"
+      className="glass-container p-3 rounded-md shadow-md mb-3 transition-transform transform hover:scale-105"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -60,13 +61,12 @@ const MovieCard: React.FC<MovieCardProps> = ({ movie, onToggleWatchlist, isInWat
       <img
         src={poster}
         alt="movie poster"
-        className="w-full h-64 object-contain rounded-md mb-3"
+        className="w-full h-64 object-contain rounded-md mb-3 transition-transform transform hover:scale-110"
       />
-      <div>
-        <h2 className="text-xl font-semibold mb-2 text-yellow-400">{name}</h2>
-        <p className="text-gray-600">Rating: {score}</p>
+      <div className="text-center">
+        <h2 className="text-2xl font-semibold mb-2 text-blue-400">{name}</h2>
+        <p className="text-gray-400">Rating: {score}</p>
 
-        {/* Add to Wishlist button */}
         {isHovered && isAuthenticated && (
           <button
             onClick={handleToggleWatchlist}

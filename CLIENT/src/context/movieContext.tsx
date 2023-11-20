@@ -12,7 +12,7 @@ interface Movie {
   name: string;
   score: number;
   poster: string;
-  genreId: string
+  genreId: string;
 }
 
 interface MovieContextProps {
@@ -36,7 +36,6 @@ export const MovieProvider: React.FC<MovieContextProps> = ({ children }) => {
   const { user } = useAuth0();
 
   useEffect(() => {
-    
     const fetchData = async () => {
       try {
         const [moviesResponse, watchlistResponse] = await Promise.all([
@@ -55,7 +54,9 @@ export const MovieProvider: React.FC<MovieContextProps> = ({ children }) => {
           const watchlistData = await watchlistResponse.json();
           setWatchlist(watchlistData);
         } else {
-          console.error(`Failed to fetch watchlist: ${watchlistResponse?.statusText}`);
+          console.error(
+            `Failed to fetch watchlist: ${watchlistResponse?.statusText}`
+          );
         }
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -64,7 +65,6 @@ export const MovieProvider: React.FC<MovieContextProps> = ({ children }) => {
 
     fetchData();
   }, [user]);
-
 
   const updateMovies = (newMovies: Movie[]) => {
     setMovies((prevMovies) => [...prevMovies, ...newMovies]);
@@ -83,11 +83,12 @@ export const MovieProvider: React.FC<MovieContextProps> = ({ children }) => {
             body: JSON.stringify({ movieId }),
           }
         );
-        console.log(response);
 
         if (response.ok) {
-          console.log(`Movie with ID ${movieId} added to watchlist`);
-          setWatchlist((prevWatchlist) => [...prevWatchlist, { id: movieId, name: "", score: 0, poster: "", genreId: ""  }]);
+          setWatchlist((prevWatchlist) => [
+            ...prevWatchlist,
+            { id: movieId, name: "", score: 0, poster: "", genreId: "" },
+          ]);
         } else {
           console.error(
             `Failed to add movie to watchlist: ${response.statusText}`
@@ -116,7 +117,6 @@ export const MovieProvider: React.FC<MovieContextProps> = ({ children }) => {
         );
 
         if (response.ok) {
-          console.log(`Movie with ID ${movieId} removed from watchlist`);
 
           setWatchlist((prevWatchlist) =>
             prevWatchlist.filter((movie) => movie.id !== movieId)
@@ -134,14 +134,12 @@ export const MovieProvider: React.FC<MovieContextProps> = ({ children }) => {
     }
   };
 
-
-
   const value = {
     movies,
     watchlist,
     updateMovies,
     addToWatchlist,
-    
+
     removeFromWatchlist,
   };
 
