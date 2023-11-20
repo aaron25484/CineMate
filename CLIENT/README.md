@@ -1,27 +1,47 @@
-# React + TypeScript + Vite
+CineMate - Your MovieHub
+CineMate is a feature-rich MovieHub application developed as a backend project for Assembler Institute. It utilizes a stack comprising React, Typescript, Express, Prisma, MongoDB, Mongoose, and Tailwind CSS. Additionally, image uploads are seamlessly handled through Cloudinary.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Features
+CRUD Operations: CineMate provides comprehensive CRUD (Create, Read, Update, Delete) operations for managing movies.
 
-Currently, two official plugins are available:
+Watchlist Functionality: Users can easily add movies to their watchlist, helping them keep track of the films they plan to watch.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Getting Started
+To get started with CineMate, follow these steps:
 
-## Expanding the ESLint configuration
+Clone the Repository:
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+bash
+Copy code
+git clone https://github.com/your-username/CineMate.git
+Install Dependencies:
+Ensure you have pnpm installed, and then run:
 
-- Configure the top-level `parserOptions` property like this:
+bash
+Copy code
+pnpm install
+This command will install all the necessary dependencies for the project.
 
-```js
-   parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-   },
-```
+Configure Environment Variables:
+Create a .env file in the root directory and set the required environment variables, including your Cloudinary credentials.
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+Example .env file:
+
+env
+Copy code
+PORT=3000
+DATABASE_URL=your_mongodb_connection_string
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+Run the Application:
+
+bash
+Copy code
+pnpm start
+This will start the server, and your CineMate MovieHub will be accessible at http://localhost:3000.
+
+Contributing
+Feel free to contribute to the development of CineMate by submitting issues or pull requests. Your contributions are highly appreciated!
+
+License
+This project is licensed under the MIT License.
