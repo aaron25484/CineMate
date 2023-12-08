@@ -3,7 +3,7 @@ import MovieModal from "./MovieModal";
 import { useAuth0 } from "@auth0/auth0-react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { createUser } from "../utils/utils";
+import { createUser } from "../services/user.service";
 import { Link } from "react-router-dom";
 
 const Navbar: React.FC = () => {

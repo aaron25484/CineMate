@@ -1,6 +1,9 @@
+const {VITE_API_URL} = import.meta.env
+
+
 export const createUser = async (userObject: {}) => {
   try {
-    const response = await fetch(`http://localhost:4000/users`, {
+    const response = await fetch(`${VITE_API_URL}/users`, {
       method: "POST",
       headers: {
         "Content-type": "application/json",

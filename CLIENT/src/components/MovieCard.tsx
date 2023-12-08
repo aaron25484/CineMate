@@ -23,11 +23,16 @@ const MovieCard: React.FC<MovieCardProps> = ({
   const [isHovered, setIsHovered] = useState(false);
   const { isAuthenticated } = useAuth0();
   const [genreName, setGenreName] = useState<string>("Unknown Genre");
+  const {VITE_API_URL} = import.meta.env
+
+  useEffect(() => {
+    console.log(`Is in watchlist: &{isInWatchlist}`)
+  }, [isInWatchlist])
 
   useEffect(() => {
     const fetchGenreName = async () => {
       try {
-        const response = await fetch(`http://localhost:4000/genres/${genreId}`);
+        const response = await fetch(`${VITE_API_URL}genres/${genreId}`);
 
         if (response.ok) {
           const genre = await response.json();
@@ -46,10 +51,12 @@ const MovieCard: React.FC<MovieCardProps> = ({
   }, [genreId]);
 
   const handleToggleWatchlist = () => {
+    console.log("Toggling watchlist")
     if (isAuthenticated) {
       onToggleWatchlist(id);
     }
   };
+
 
   return (
     <div

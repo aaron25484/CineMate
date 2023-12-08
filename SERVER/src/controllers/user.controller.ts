@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { prismaClient } from "../db/client";
 import { convertToType } from "../utils/utils";
-import { auth } from "express-oauth2-jwt-bearer";
+
 export const getAllUsers = async (req: Request, res: Response) => {
   try {
     const users = await prismaClient.user.findMany();
@@ -161,7 +161,7 @@ export const addToWatchlist = async (req: Request, res: Response) => {
       },
     });
 
-    res.status(200).json({ message: "Movie added to watchlist" });
+    res.status(200).json({ message: "Movie added to watchlist", updatedUser });
   } catch (error) {
     res.status(500).json(error);
   }

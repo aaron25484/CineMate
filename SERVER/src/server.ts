@@ -5,6 +5,7 @@ import movieRoutes from "./routes/movie.routes";
 import cors from "cors";
 import errorHandler from "./middleware/error.middleware";
 import FileUpload from "express-fileupload";
+import { checkJWTMiddleware } from "./middleware/checkJWT.middleware";
 
 const app: Application = express();
 app.use(express.json());

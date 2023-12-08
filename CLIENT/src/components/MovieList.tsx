@@ -15,20 +15,50 @@ const MovieList: React.FC = () => {
   const [filteredMovies, setFilteredMovies] = useState(allMovies);
   const [genres, setGenres] = useState<string[]>([]);
   const { user } = useAuth0();
+  const {VITE_API_URL} = import.meta.env
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [moviesResponse, genresResponse] = await Promise.all([
-          fetch("http://localhost:4000/movies"),
-          fetch("http://localhost:4000/genres"),
+          fetch(`${VITE_API_URL}movies`),
+          fetch(`${VITE_API_URL}genres`),
         ]);
 
-        if (moviesResponse.ok) {
-          const updatedMovies = await moviesResponse.json();
-          setFilteredMovies(updatedMovies);
-        } else {
+        if (!moviesResponse.ok) {
           console.error(`Failed to fetch movies: ${moviesResponse.statusText}`);
+          return;
+        }
+
+        const updatedMovies = await moviesResponse.json();
+
+        if (user) {
+          try {
+            const watchlistResponse = await fetch(
+              `${VITE_API_URL}users/${user.email}/watchlist`
+            );
+
+            if (watchlistResponse.ok) {
+              const watchlistData = await watchlistResponse.json();
+
+              const updatedFilteredMovies = updatedMovies.map((movie) => ({
+                ...movie,
+                isInWatchlist: watchlistData.some(
+                  (watchlistMovie) => watchlistMovie.id === movie.id
+                ),
+              }));
+
+              setFilteredMovies(updatedFilteredMovies);
+            } else {
+              console.error(
+                `Failed to fetch watchlist: ${watchlistResponse.statusText}`
+              );
+            }
+          } catch (error) {
+            console.error("Error fetching watchlist:", error);
+          }
+        } else {
+          setFilteredMovies(updatedMovies);
         }
 
         if (genresResponse.ok) {
@@ -56,16 +86,16 @@ const MovieList: React.FC = () => {
     }
   };
 
+  const isInWatchlist = (movieId: string) => {
+    return watchlist.some((watchlistMovie) => watchlistMovie.id === movieId);
+  };
+
   const handleToggleWatchlist = async (movieId: string) => {
-    if (watchlist.some((watchlistMovie) => watchlistMovie.id === movieId)) {
+    if (isInWatchlist(movieId)) {
       removeFromWatchlist(movieId);
     } else {
       addToWatchlist(movieId);
     }
-  };
-
-  const isInWatchlist = (movieId: string) => {
-    return watchlist.some((watchlistMovie) => watchlistMovie.id === movieId);
   };
 
   return (

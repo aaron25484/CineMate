@@ -50,7 +50,7 @@ export const MovieProvider: React.FC<MovieContextProps> = ({ children }) => {
           console.error(`Failed to fetch movies: ${moviesResponse.statusText}`);
         }
 
-        if (user && watchlistResponse?.ok) {
+        if (user && watchlistResponse && watchlistResponse.ok) {
           const watchlistData = await watchlistResponse.json();
           setWatchlist(watchlistData);
         } else {

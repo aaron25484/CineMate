@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useMovieContext } from "../context/movieContext";
 import { useAuth0 } from "@auth0/auth0-react";
+import { getGenres } from "../services/genre.service";
+import { uploadRequest } from "../services/upload.service";
+import { createMovie } from "../services/movie.service";
 
 interface MovieModalProps {
   isOpen: boolean;
@@ -13,8 +16,6 @@ interface Genre {
   id: string;
   name: string;
 }
-
-// const genres = ['Action', 'Drama', 'Comedy'];
 
 interface FormData {
   name: string;
@@ -29,56 +30,31 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose }) => {
   const { updateMovies } = useMovieContext();
   const { getAccessTokenSilently } = useAuth0();
   const [genres, setGenres] = useState<Genre[]>([]);
+  const {VITE_API_URL} = import.meta.env
 
   useEffect(() => {
     const fetchGenres = async () => {
       try {
-        const accessToken = await getAccessTokenSilently();
-        const response = await fetch("http://localhost:4000/genres", {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        });
-
-        if (response.ok) {
-          const genresData = await response.json();
-          setGenres(genresData);
-        } else {
-          console.error(`Failed to fetch genres: ${response.statusText}`);
-        }
+        const genresData = await getGenres();
+        setGenres(genresData);
       } catch (error) {
         console.error("Error fetching genres:", error);
       }
     };
-
     fetchGenres();
-  }, [getAccessTokenSilently]);
+  }, []);
 
   const onSubmit = async (data: FormData) => {
     setLoading(true);
 
     const poster = data.poster[0];
 
-    const formData = new FormData();
-    formData.append("file", poster);
-    formData.append("upload_preset", "posterPreset");
-
     try {
-      const accessToken = await getAccessTokenSilently();
+      const posterUrl = await uploadRequest(poster);
 
-      const uploadResponse = await fetch(
-        "https://api.cloudinary.com/v1_1/dy6oz4gvn/image/upload",
-        {
-          method: "POST",
-          body: formData,
-          mode: "cors",
-        }
-      );
-      if (!uploadResponse.ok) {
+      if (!posterUrl) {
         throw new Error("Image upload failed");
       }
-      const imageData = await uploadResponse.json();
-      const posterUrl = imageData.secure_url;
 
       const movieData = {
         name: data.name,
@@ -87,22 +63,15 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose }) => {
         poster: posterUrl,
       };
 
-      const url = "http://localhost:4000";
+      const accessToken = await getAccessTokenSilently();
+      const response = await createMovie(movieData, accessToken);
 
-      const response = await fetch(`${url}/movies`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: JSON.stringify(movieData),
-      });
-
-      if (!response.ok) {
-        console.error("Failed to submit movie. Server response:", response);
+      if (!response) {
+        console.error("Failed to submit movie.");
         throw new Error("Failed to submit movie");
       }
-      const updatedMovies = await fetch(`${url}/movies`).then((res) =>
+
+      const updatedMovies = await fetch(`${VITE_API_URL}movies`).then((res) =>
         res.json()
       );
       updateMovies(updatedMovies);
