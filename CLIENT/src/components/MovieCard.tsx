@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 export interface Movie {
   id: string;
@@ -6,18 +6,21 @@ export interface Movie {
   score: number;
   poster: string;
   genreId: string;
+  isInWatchlist?: boolean;
 }
 
 interface MovieCardProps {
   movie: Movie;
   onToggleWatchlist: (movieId: string) => void;
   isInWatchlist: boolean;
+  isRemovable?: boolean;
 }
 
 const MovieCard: React.FC<MovieCardProps> = ({
   movie,
   onToggleWatchlist,
   isInWatchlist,
+  isRemovable = false
 }) => {
   const { name, score, poster, id, genreId } = movie;
   const [isHovered, setIsHovered] = useState(false);
@@ -80,8 +83,9 @@ const MovieCard: React.FC<MovieCardProps> = ({
             className={`${
               isInWatchlist ? "bg-red-500" : "bg-blue-500"
             } hover:bg-blue-600 text-white px-4 py-2 rounded-md mt-2  justify-center  transition duration-300`}
+            disabled={isInWatchlist}
           >
-            {isInWatchlist ? "Remove from Watchlist" : "Add to Watchlist"}
+            {isRemovable ? "Remove from Watchlist" : isInWatchlist ? "Already in Watchlist" : "Add to Watchlist"}
           </button>
         )}
       </div>

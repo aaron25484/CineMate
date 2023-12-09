@@ -11,6 +11,7 @@ const Navbar: React.FC = () => {
   const [userName, setUserName] = useState<string>();
   const { loginWithRedirect, logout, user, isAuthenticated, isLoading } =
     useAuth0();
+  const {VITE_API_URL} = import.meta.env
 
   const openModal = () => {
     if (!isAuthenticated) {
@@ -31,7 +32,7 @@ const Navbar: React.FC = () => {
       try {
         if (isAuthenticated && user) {
           const response = await fetch(
-            `http://localhost:4000/users/${user?.email}`
+            `${VITE_API_URL}users/${user?.email}`
           );
           if (response.ok) {
             const userData = await response.json();

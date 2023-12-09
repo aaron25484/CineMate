@@ -1,57 +1,57 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useMovieContext } from "../context/movieContext";
-import GenreBar from "./Genrebar";
-import MovieCard from "./MovieCard";
+import GenreBar, { Genre } from "./Genrebar";
+import MovieCard, { Movie } from "./MovieCard";
 import { useAuth0 } from "@auth0/auth0-react";
 
 const MovieList: React.FC = () => {
   const {
     movies: allMovies,
-    updateMovies,
     watchlist,
     addToWatchlist,
     removeFromWatchlist,
   } = useMovieContext();
   const [filteredMovies, setFilteredMovies] = useState(allMovies);
-  const [genres, setGenres] = useState<string[]>([]);
+  const [genres, setGenres] = useState<Genre[]>([]);
   const { user } = useAuth0();
   const {VITE_API_URL} = import.meta.env
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [moviesResponse, genresResponse] = await Promise.all([
+        const [moviesResponse, genresResponse, watchlistResponse] = await Promise.all([
           fetch(`${VITE_API_URL}movies`),
           fetch(`${VITE_API_URL}genres`),
+          user && fetch(`${VITE_API_URL}users/${user?.email}/watchlist`)
         ]);
-
+  
         if (!moviesResponse.ok) {
           console.error(`Failed to fetch movies: ${moviesResponse.statusText}`);
           return;
         }
-
+  
         const updatedMovies = await moviesResponse.json();
-
+  
         if (user) {
           try {
-            const watchlistResponse = await fetch(
-              `${VITE_API_URL}users/${user.email}/watchlist`
-            );
-
-            if (watchlistResponse.ok) {
+            if (watchlistResponse && watchlistResponse.ok) {
               const watchlistData = await watchlistResponse.json();
 
-              const updatedFilteredMovies = updatedMovies.map((movie) => ({
+              console.log('Fetched watchlist data:', watchlistData);
+
+  
+              const updatedFilteredMovies = updatedMovies.map((movie: Movie) => ({
                 ...movie,
-                isInWatchlist: watchlistData.some(
-                  (watchlistMovie) => watchlistMovie.id === movie.id
-                ),
+                isInWatchlist: watchlistData.includes(movie.id),
               }));
 
+              console.log('Updated filtered movies:', updatedFilteredMovies);
+
+  
               setFilteredMovies(updatedFilteredMovies);
             } else {
               console.error(
-                `Failed to fetch watchlist: ${watchlistResponse.statusText}`
+                `Failed to fetch watchlist: ${watchlistResponse?.statusText}`
               );
             }
           } catch (error) {
@@ -60,7 +60,7 @@ const MovieList: React.FC = () => {
         } else {
           setFilteredMovies(updatedMovies);
         }
-
+  
         if (genresResponse.ok) {
           const genresData = await genresResponse.json();
           setGenres(genresData);
@@ -71,9 +71,10 @@ const MovieList: React.FC = () => {
         console.error("Error fetching data:", error);
       }
     };
-
+  
     fetchData();
-  }, [updateMovies, user]);
+  }, [user, watchlist]);
+  
 
   const handleGenreFilter = (genreId: string | null) => {
     if (genreId) {
@@ -108,7 +109,7 @@ const MovieList: React.FC = () => {
             key={movie.id}
             movie={movie}
             onToggleWatchlist={handleToggleWatchlist}
-            isInWatchlist={isInWatchlist(movie.id)}
+            isInWatchlist={!!movie.isInWatchlist}
           />
         ))}
       </div>

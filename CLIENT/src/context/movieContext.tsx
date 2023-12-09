@@ -13,6 +13,8 @@ interface Movie {
   score: number;
   poster: string;
   genreId: string;
+  isInWatchlist?: boolean;
+
 }
 
 interface MovieContextProps {
@@ -32,37 +34,37 @@ const MovieContext = createContext<MovieContextValue | undefined>(undefined);
 export const MovieProvider: React.FC<MovieContextProps> = ({ children }) => {
   const [movies, setMovies] = useState<Movie[]>([]);
   const [watchlist, setWatchlist] = useState<Movie[]>([]);
+  const {VITE_API_URL} = import.meta.env
 
   const { user } = useAuth0();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [moviesResponse, watchlistResponse] = await Promise.all([
-          fetch("http://localhost:4000/movies"),
-          user && fetch(`http://localhost:4000/users/${user?.email}/watchlist`)
-        ]);
-
+        const moviesResponse = await fetch(`${VITE_API_URL}movies`);
+        
         if (moviesResponse.ok) {
           const updatedMovies = await moviesResponse.json();
           setMovies(updatedMovies);
         } else {
           console.error(`Failed to fetch movies: ${moviesResponse.statusText}`);
         }
-
-        if (user && watchlistResponse && watchlistResponse.ok) {
-          const watchlistData = await watchlistResponse.json();
-          setWatchlist(watchlistData);
-        } else {
-          console.error(
-            `Failed to fetch watchlist: ${watchlistResponse?.statusText}`
-          );
+  
+        if (user) {
+          const watchlistResponse = await fetch(`${VITE_API_URL}users/${user.email}/watchlist`);
+  
+          if (watchlistResponse.ok) {
+            const watchlistData = await watchlistResponse.json();
+            setWatchlist(watchlistData);
+          } else {
+            console.error(`Failed to fetch watchlist: ${watchlistResponse.statusText}`);
+          }
         }
       } catch (error) {
         console.error("Error fetching data:", error);
       }
     };
-
+  
     fetchData();
   }, [user]);
 
@@ -74,7 +76,7 @@ export const MovieProvider: React.FC<MovieContextProps> = ({ children }) => {
     try {
       if (user) {
         const response = await fetch(
-          `http://localhost:4000/users/${user.email}/watchlist`,
+          `${VITE_API_URL}users/${user?.email}/watchlist`,
           {
             method: "PATCH",
             headers: {
@@ -106,7 +108,7 @@ export const MovieProvider: React.FC<MovieContextProps> = ({ children }) => {
     try {
       if (user) {
         const response = await fetch(
-          `http://localhost:4000/users/${user.email}/watchlist`,
+          `${VITE_API_URL}users/${user?.email}/watchlist`,
           {
             method: "DELETE",
             headers: {
