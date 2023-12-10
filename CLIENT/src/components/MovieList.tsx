@@ -36,17 +36,11 @@ const MovieList: React.FC = () => {
           try {
             if (watchlistResponse && watchlistResponse.ok) {
               const watchlistData = await watchlistResponse.json();
-
-              console.log('Fetched watchlist data:', watchlistData);
-
   
               const updatedFilteredMovies = updatedMovies.map((movie: Movie) => ({
                 ...movie,
                 isInWatchlist: watchlistData.includes(movie.id),
               }));
-
-              console.log('Updated filtered movies:', updatedFilteredMovies);
-
   
               setFilteredMovies(updatedFilteredMovies);
             } else {

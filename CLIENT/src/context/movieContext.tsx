@@ -27,6 +27,7 @@ interface MovieContextValue {
   updateMovies: (newMovies: Movie[]) => void;
   addToWatchlist: (movieId: string) => void;
   removeFromWatchlist: (movieId: string) => void;
+  getUserWatchlist: (email: string) => void;
 }
 
 const MovieContext = createContext<MovieContextValue | undefined>(undefined);
@@ -104,35 +105,57 @@ export const MovieProvider: React.FC<MovieContextProps> = ({ children }) => {
     }
   };
 
-  const removeFromWatchlist = async (movieId: string) => {
-    try {
-      if (user) {
-        const response = await fetch(
-          `${VITE_API_URL}users/${user?.email}/watchlist`,
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ movieId }),
-          }
-        );
-
-        if (response.ok) {
-
-          setWatchlist((prevWatchlist) =>
-            prevWatchlist.filter((movie) => movie.id !== movieId)
-          );
-        } else {
-          console.error(
-            `Failed to remove movie from watchlist: ${response.statusText}`
-          );
+  // Modify removeFromWatchlist function
+const removeFromWatchlist = async (movieId: string) => {
+  try {
+    if (user) {
+      const response = await fetch(
+        `${VITE_API_URL}users/${user?.email}/watchlist`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ movieId, action: "toggle" }),
         }
+      );
+
+      if (response.ok) {
+        return response.json();  // Return the response
       } else {
-        console.warn("User not authenticated. Cannot remove from watchlist.");
+        console.error(
+          `Failed to remove movie from watchlist: ${response.statusText}`
+        );
+        return null;
+      }
+    } else {
+      console.warn("User not authenticated. Cannot remove from watchlist.");
+      return null;
+    }
+  } catch (error) {
+    console.error("Error removing movie from watchlist:", error);
+    return null;
+  }
+};
+
+
+  const getUserWatchlist = async (email: string): Promise<Movie[] | null> => {
+    try {
+      const response = await fetch(`${VITE_API_URL}users/${email}/watchlist`);
+      
+      if (response.ok) {
+        const watchlist = await response.json();
+        return watchlist;
+      } else if (response.status === 404) {
+        console.error("User not found");
+        return null;
+      } else {
+        console.error(`Failed to fetch user watchlist: ${response.statusText}`);
+        return null;
       }
     } catch (error) {
-      console.error("Error removing movie from watchlist:", error);
+      console.error("Error fetching user watchlist:", error);
+      return null;
     }
   };
 
@@ -141,7 +164,7 @@ export const MovieProvider: React.FC<MovieContextProps> = ({ children }) => {
     watchlist,
     updateMovies,
     addToWatchlist,
-
+    getUserWatchlist,
     removeFromWatchlist,
   };
 

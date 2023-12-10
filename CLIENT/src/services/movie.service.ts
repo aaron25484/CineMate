@@ -35,3 +35,22 @@ export const createMovie = async (
     return { error: 'Failed to create movie' };
   }
 };
+
+export const getMovies = async (movieId: string) => {
+  try {
+    const response = await fetch(`${VITE_API_URL}movies/${movieId}`);
+
+    if (response.ok) {
+      const movies = await response.json();
+      return movies;
+    } else {
+      const errorData = await response.json(); // Parse error response
+      console.error(`Failed to fetch movie details for ID ${movieId}:`, errorData);
+      throw new Error(`Failed to fetch movie details for ID ${movieId}`);
+    }
+  } catch (error) {
+    console.error('Error fetching movies:', error);
+    return null;
+  }
+};
+

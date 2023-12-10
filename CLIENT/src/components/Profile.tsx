@@ -2,6 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import MovieCard from "./MovieCard";
 import { Movie } from "./MovieCard";
+import { getUserByEmail } from "../services/user.service";
+import { getMovies } from "../services/movie.service";
+import { useMovieContext } from "../context/movieContext";
 
 interface UserData {
   name: string;
@@ -11,62 +14,46 @@ interface UserData {
 
 const Profile: React.FC = () => {
   const { user, isAuthenticated } = useAuth0();
+  const {addToWatchlist, removeFromWatchlist, getUserWatchlist} = useMovieContext()
   const [userData, setUserData] = useState<UserData>({
     name: "",
     email: "",
     password: "",
   });
   const [userWatchlist, setUserWatchlist] = useState<Movie[]>([]);
+  const {VITE_API_URL} = import.meta.env
+
 
   useEffect(() => {
     const fetchUserData = async () => {
       try {
         if (isAuthenticated && user) {
-          const userDataResponse = await fetch(
-            `http://localhost:4000/users/${user.email}`
-          );
+          const userEmail = user.email || '';
+          const userDataResponse = await getUserByEmail(userEmail);
+
           if (userDataResponse.ok) {
             const userData = await userDataResponse.json();
             setUserData(userData);
+
+            const watchlistData = await getUserWatchlist(userEmail);
+
+            if (Array.isArray(watchlistData)) {
+    
+              const movieDetailsPromises = watchlistData.map(async (movieId: string) => {
+                const movieDetails = await getMovies(movieId);
+                return movieDetails;
+              });
+    
+              const movieDetails = await Promise.all(movieDetailsPromises);
+    
+              const validMovieDetails = movieDetails.filter((movie: Movie) => movie !== null);
+    
+              setUserWatchlist(validMovieDetails);
+            } else {
+              console.error(`Failed to fetch user watchlist`);
+            }
           } else {
-            console.error(
-              `Failed to fetch user data: ${userDataResponse.statusText}`
-            );
-          }
-
-          const watchlistResponse = await fetch(
-            `http://localhost:4000/users/${user.email}/watchlist`
-          );
-          if (watchlistResponse.ok) {
-            const watchlistData = await watchlistResponse.json();
-
-            const movieDetailsPromises = watchlistData.map(
-              async (movieId: string) => {
-                const movieResponse = await fetch(
-                  `http://localhost:4000/movies/${movieId}`
-                );
-                if (movieResponse.ok) {
-                  return movieResponse.json();
-                } else {
-                  console.error(
-                    `Failed to fetch movie details: ${movieResponse.statusText}`
-                  );
-                  return null;
-                }
-              }
-            );
-
-            const movieDetails = await Promise.all(movieDetailsPromises);
-
-            const validMovieDetails = movieDetails.filter(
-              (movie) => movie !== null
-            );
-
-            setUserWatchlist(validMovieDetails);
-          } else {
-            console.error(
-              `Failed to fetch user watchlist: ${watchlistResponse.statusText}`
-            );
+            console.error(`Failed to fetch user data: ${userDataResponse.statusText}`);
           }
         }
       } catch (error) {
@@ -76,42 +63,33 @@ const Profile: React.FC = () => {
 
     fetchUserData();
   }, [isAuthenticated, user]);
-
+  
   const onToggleWatchlist = async (movieId: string) => {
     try {
       if (isAuthenticated && user) {
-        setUserWatchlist((prevWatchlist) => {
-          if (prevWatchlist.some((movie) => movie.id === movieId)) {
-            return prevWatchlist.filter((movie) => movie.id !== movieId);
-          } else {
-            return [
-              ...prevWatchlist,
-              { id: movieId, name: "", score: 0, poster: "", genreId: "" },
-            ];
-          }
-        });
-
-        const updateWatchlistResponse = await fetch(
-          `http://localhost:4000/users/${user.email}/watchlist`,
-          {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ movieId, action: "toggle" }),
-          }
-        );
-
-        if (!updateWatchlistResponse.ok) {
-          console.error(
-            `Failed to update user watchlist: ${updateWatchlistResponse.statusText}`
-          );
-        }
+        const action = isInWatchlist(movieId) ? "delete" : "add";
+  
+        const watchlistService =
+          action === "delete" ? removeFromWatchlist : addToWatchlist;
+  
+        await watchlistService(movieId);
+            setUserWatchlist((prevWatchlist) => {
+            if (prevWatchlist.some((movie) => movie.id === movieId)) {
+              return prevWatchlist.filter((movie) => movie.id !== movieId);
+            } else {
+              return [
+                ...prevWatchlist,
+                { id: movieId, name: "", score: 0, poster: "", genreId: "" },
+              ];
+            }
+          });
+        
       }
     } catch (error) {
       console.error("Error toggling watchlist:", error);
     }
   };
+
 
   const isInWatchlist = (movieId: string) => {
     return userWatchlist.some((movie) => movie.id === movieId);
@@ -121,7 +99,7 @@ const Profile: React.FC = () => {
     try {
       if (isAuthenticated && user) {
         const updateUserResponse = await fetch(
-          `http://localhost:4000/users/${user.email}`,
+          `${VITE_API_URL}users/${user.email}`,
           {
             method: "PATCH",
             headers: {
@@ -192,6 +170,7 @@ const Profile: React.FC = () => {
                 movie={movie}
                 onToggleWatchlist={onToggleWatchlist}
                 isInWatchlist={isInWatchlist(movie.id)}
+                isRemovable={true}
               />
             ))}
           </div>

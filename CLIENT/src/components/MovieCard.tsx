@@ -29,7 +29,6 @@ const MovieCard: React.FC<MovieCardProps> = ({
   const {VITE_API_URL} = import.meta.env
 
   useEffect(() => {
-    console.log(`Is in watchlist: &{isInWatchlist}`)
   }, [isInWatchlist])
 
   useEffect(() => {
@@ -54,7 +53,6 @@ const MovieCard: React.FC<MovieCardProps> = ({
   }, [genreId]);
 
   const handleToggleWatchlist = () => {
-    console.log("Toggling watchlist")
     if (isAuthenticated) {
       onToggleWatchlist(id);
     }
@@ -83,8 +81,8 @@ const MovieCard: React.FC<MovieCardProps> = ({
             className={`${
               isInWatchlist ? "bg-red-500" : "bg-blue-500"
             } hover:bg-blue-600 text-white px-4 py-2 rounded-md mt-2  justify-center  transition duration-300`}
-            disabled={isInWatchlist}
-          >
+            disabled={isInWatchlist && !isRemovable}
+            >
             {isRemovable ? "Remove from Watchlist" : isInWatchlist ? "Already in Watchlist" : "Add to Watchlist"}
           </button>
         )}
