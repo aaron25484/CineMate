@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import MovieCard from "./MovieCard";
 import { Movie } from "./MovieCard";
-import { getUserByEmail } from "../services/user.service";
+import { getUserByEmail, updateUser } from "../services/user.service";
 import { getMovies } from "../services/movie.service";
 import { useMovieContext } from "../context/movieContext";
 
@@ -21,8 +21,6 @@ const Profile: React.FC = () => {
     password: "",
   });
   const [userWatchlist, setUserWatchlist] = useState<Movie[]>([]);
-  const {VITE_API_URL} = import.meta.env
-
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -90,29 +88,19 @@ const Profile: React.FC = () => {
     }
   };
 
-
   const isInWatchlist = (movieId: string) => {
     return userWatchlist.some((movie) => movie.id === movieId);
   };
 
   const handleUpdateUser = async () => {
     try {
-      if (isAuthenticated && user) {
-        const updateUserResponse = await fetch(
-          `${VITE_API_URL}users/${user.email}`,
-          {
-            method: "PATCH",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(userData),
-          }
-        );
+      if (isAuthenticated && user && userData) {
+        const updateUserResponse = await updateUser(user.email, userData);
 
-        if (updateUserResponse.ok) {
+        if (updateUserResponse) {
         } else {
           console.error(
-            `Failed to update user: ${updateUserResponse.statusText}`
+            `Failed to update user: ${updateUserResponse}`
           );
         }
       }

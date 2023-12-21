@@ -105,7 +105,6 @@ export const MovieProvider: React.FC<MovieContextProps> = ({ children }) => {
     }
   };
 
-  // Modify removeFromWatchlist function
 const removeFromWatchlist = async (movieId: string) => {
   try {
     if (user) {
@@ -121,7 +120,7 @@ const removeFromWatchlist = async (movieId: string) => {
       );
 
       if (response.ok) {
-        return response.json();  // Return the response
+        return response.json();  
       } else {
         console.error(
           `Failed to remove movie from watchlist: ${response.statusText}`
